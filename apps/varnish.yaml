@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: varnish
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    product: webapp
+spec:
+  project: request-counter
+  source:
+    repoURL: https://github.com/camuzard/django-app-helm.git
+    targetRevision: HEAD
+    path: varnish
+    helm:
+      values: |
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: nginx-external
+          hosts:
+            - host: django.infra-dev02.blue.ref.eu-west-1.sportsbook.sgdigital.com
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+                  backend:
+                    service:
+                      name: varnish
+                      port:
+                        number: 80
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    syncOptions:
+     - CreateNamespace=true
+    automated:
+     selfHeal: true
+     prune: true
