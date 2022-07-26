@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    group: app-group-1
+    version: "1.0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/camuzard/argocd-examples.git
+    targetRevision: HEAD
+    path: nginx-helm/helm
+    helm:
+      values: |
+        nginx:
+          configureTemplates: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    syncOptions:
+     - CreateNamespace=true
+    automated:
+     selfHeal: true
+     prune: true

@@ -48,15 +48,15 @@ argocd cluster add <CONTEXTNAME>
 For k3d, we will do it manually. 
 First, create a service account in the target cluster for Argo CD.
 ```
-kubectl config use-context k3d-d3d2
-kubectl apply -f k3d-k3d2/sa.yaml
+kubectl apply --context k3d-k3d2 -f k3d-k3d2/sa.yaml
 ```
 
 Replace in k3d-k3d2/register.yaml the remote <cluster_api> and <bearer_token>.
 To retrieve the bearer token for the service account created, you can
 ```
 sa=$(kubectl get --context k3d-k3d2 sa -n kube-system argocd-manager -o jsonpath='{.secrets[0].name}')
-kubectl get --context k3d-k3d2 -n kube-system secret/$sa -o jsonpath='{.data.token}' | base64 --decode
+token=$(kubectl get --context k3d-k3d2 -n kube-system secret/$sa -o jsonpath='{.data.token}' | base64 --decode)
+sed -i "s/<bearer_token>/$token/g" k3d-k3d2/register.yaml
 ```
 ```
 kubectl apply -n argocd -f k3d-k3d2/register.yaml
